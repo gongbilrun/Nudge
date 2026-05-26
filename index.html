@@ -11,13 +11,13 @@
 html { scroll-behavior: smooth; }
 
 :root {
-  --bg: #080808;
-  --s1: #111111;
-  --s2: #181818;
-  --br: rgba(255,255,255,.08);
-  --tx: #F2F2F2;
-  --tx2: #888;
-  --tx3: #3A3A3A;
+  --bg: #141414;
+  --s1: #1C1C1C;
+  --s2: #242424;
+  --br: rgba(255,255,255,.1);
+  --tx: #F4F4F4;
+  --tx2: #999;
+  --tx3: #4A4A4A;
   --neon: #AAFF00;
   --neon2: #88CC00;
 }
@@ -39,7 +39,7 @@ nav {
   transition: all .3s;
 }
 nav.stuck {
-  background: rgba(8,8,8,.85);
+  background: rgba(20,20,20,.9);
   border-color: var(--br);
   backdrop-filter: blur(20px);
 }
@@ -70,7 +70,7 @@ nav.stuck {
   content: '';
   position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
   width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(170,255,0,.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(170,255,0,.14) 0%, rgba(170,255,0,.05) 45%, transparent 70%);
   pointer-events: none;
 }
 .hero-label {
@@ -100,9 +100,9 @@ nav.stuck {
   padding: 14px 30px; border-radius: 99px;
   font-size: 14px; font-weight: 600; text-decoration: none;
   transition: all .2s;
-  box-shadow: 0 0 24px rgba(170,255,0,.2);
+  box-shadow: 0 0 28px rgba(170,255,0,.35), 0 0 60px rgba(170,255,0,.15);
 }
-.dl-main:hover { box-shadow: 0 0 36px rgba(170,255,0,.35); transform: translateY(-1px); }
+.dl-main:hover { box-shadow: 0 0 40px rgba(170,255,0,.5), 0 0 80px rgba(170,255,0,.2); transform: translateY(-1px); }
 .dl-sub {
   display: inline-flex; align-items: center; gap: 8px;
   background: transparent; color: var(--tx2);
@@ -115,7 +115,7 @@ nav.stuck {
 /* ─── WIDGET MOCKUP ─── */
 .mockup {
   width: min(360px, 88vw);
-  background: rgba(16,16,16,.95);
+  background: rgba(28,28,28,.97);
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 20px;
   overflow: hidden;
@@ -172,7 +172,7 @@ nav.stuck {
   font-weight: 300; color: var(--tx2); line-height: 1.7;
   letter-spacing: -.3px;
 }
-.about p b { color: var(--tx); font-weight: 500; }
+.about p b { color: var(--neon); font-weight: 500; }
 
 /* ─── FEATURES ─── */
 .features {
@@ -186,10 +186,12 @@ nav.stuck {
 }
 .feat {
   display: flex; align-items: flex-start; gap: 28px;
-  padding: 40px 0;
+  padding: 40px 0 40px 20px;
   border-bottom: 1px solid var(--br);
-  transition: opacity .2s;
+  border-left: 2px solid rgba(170,255,0,.2);
+  transition: border-color .2s;
 }
+.feat:hover { border-left-color: rgba(170,255,0,.6); }
 .feat:last-child { border-bottom: none; }
 .feat-icon {
   width: 44px; height: 44px; border-radius: 12px;
@@ -200,7 +202,7 @@ nav.stuck {
 .feat-body { flex: 1; }
 .feat-body h3 {
   font-size: 18px; font-weight: 500; letter-spacing: -.4px;
-  margin-bottom: 8px; color: var(--tx);
+  margin-bottom: 8px; color: var(--neon);
 }
 .feat-body p { font-size: 14px; color: var(--tx2); line-height: 1.75; font-weight: 300; }
 
@@ -225,7 +227,7 @@ nav.stuck {
 .use-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--neon); flex-shrink: 0; margin-top: 8px;
-  box-shadow: 0 0 8px rgba(170,255,0,.4);
+  box-shadow: 0 0 12px rgba(170,255,0,.7), 0 0 24px rgba(170,255,0,.3);
 }
 .use-text h4 { font-size: 16px; font-weight: 500; margin-bottom: 6px; letter-spacing: -.3px; }
 .use-text p { font-size: 13px; color: var(--tx2); line-height: 1.75; font-weight: 300; }
@@ -240,14 +242,14 @@ nav.stuck {
   content: '';
   position: absolute; bottom: -10%; left: 50%; transform: translateX(-50%);
   width: 500px; height: 400px;
-  background: radial-gradient(circle, rgba(170,255,0,.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(170,255,0,.12) 0%, transparent 70%);
   pointer-events: none;
 }
 .cta-name {
   font-size: clamp(72px, 12vw, 160px);
   font-weight: 700; letter-spacing: -6px; line-height: .9;
   color: var(--tx); margin-bottom: 32px;
-  text-shadow: 0 0 120px rgba(170,255,0,.1);
+  text-shadow: 0 0 60px rgba(170,255,0,.25), 0 0 120px rgba(170,255,0,.12);
 }
 .cta p { font-size: 15px; color: var(--tx2); font-weight: 300; margin-bottom: 36px; }
 .cta-note { font-size: 11px; color: var(--tx3); margin-top: 16px; letter-spacing: .04em; }
@@ -271,7 +273,7 @@ footer a:hover { color: var(--tx2); }
 }
 .overlay.open { display: flex; }
 .modal {
-  background: #141414; border: 1px solid rgba(255,255,255,.1);
+  background: #1E1E1E; border: 1px solid rgba(255,255,255,.12);
   border-radius: 22px; padding: 28px; width: 300px;
   box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(170,255,0,.06);
 }
@@ -321,7 +323,7 @@ footer a:hover { color: var(--tx2); }
 
 <!-- HERO -->
 <section class="hero">
-  <p class="hero-label">Desktop Widget &nbsp;·&nbsp; Free</p>
+  <p class="hero-label">Desktop Widget &nbsp;·&nbsp; Windows · Free</p>
   <h1>잊기 전에<br><b>Nudge</b></h1>
   <p class="hero-sub">
     창을 닫아도 사라지지 않아요.<br>
@@ -333,6 +335,7 @@ footer a:hover { color: var(--tx2); }
       무료로 받기
     </a>
     <a href="#features" class="dl-sub">어떤 앱인지 보기</a>
+
   </div>
 
   <!-- live widget mockup -->
@@ -437,7 +440,6 @@ footer a:hover { color: var(--tx2); }
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 1v9M3 7l4 4 4-4"/><line x1="1" y1="13" x2="13" y2="13"/></svg>
       Windows 다운로드
     </a>
-    <a href="https://github.com/gongbilrun/nudge/releases/latest" class="dl-sub">macOS 다운로드</a>
   </div>
   <p class="cta-note">GitHub Releases에서 배포됩니다</p>
 </section>
