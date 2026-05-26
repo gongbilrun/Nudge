@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="창을 닫아도 항상 떠있는 일정 위젯">
+<title>Nudge</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --bg: #080808;
+  --s1: #111111;
+  --s2: #181818;
+  --br: rgba(255,255,255,.08);
+  --tx: #F2F2F2;
+  --tx2: #888;
+  --tx3: #3A3A3A;
+  --neon: #AAFF00;
+  --neon2: #88CC00;
+}
+
+body {
+  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 56px;
+  border-bottom: 1px solid transparent;
+  transition: all .3s;
+}
+nav.stuck {
+  background: rgba(8,8,8,.85);
+  border-color: var(--br);
+  backdrop-filter: blur(20px);
+}
+.n-logo { font-size: 16px; font-weight: 600; letter-spacing: -.3px; }
+.n-logo span { color: var(--neon); }
+.n-right { display: flex; align-items: center; gap: 28px; }
+.n-right a { font-size: 13px; color: var(--tx2); text-decoration: none; transition: color .15s; }
+.n-right a:hover { color: var(--tx); }
+.n-dl {
+  background: var(--neon) !important; color: #111 !important;
+  padding: 8px 18px; border-radius: 99px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  transition: opacity .15s;
+}
+.n-dl:hover { opacity: .85; }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 100px 24px 60px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(170,255,0,.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-label {
+  font-size: 11px; font-weight: 500; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--neon);
+  margin-bottom: 28px;
+  opacity: .8;
+}
+.hero h1 {
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 300; letter-spacing: -3px; line-height: .95;
+  margin-bottom: 20px;
+}
+.hero h1 b { font-weight: 700; }
+.hero-sub {
+  font-size: clamp(15px, 1.8vw, 17px);
+  color: var(--tx2); font-weight: 300;
+  line-height: 1.8; margin-bottom: 44px;
+  max-width: 380px;
+}
+
+/* download buttons */
+.dl-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 72px; }
+.dl-main {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--neon); color: #111;
+  padding: 14px 30px; border-radius: 99px;
+  font-size: 14px; font-weight: 600; text-decoration: none;
+  transition: all .2s;
+  box-shadow: 0 0 24px rgba(170,255,0,.2);
+}
+.dl-main:hover { box-shadow: 0 0 36px rgba(170,255,0,.35); transform: translateY(-1px); }
+.dl-sub {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--tx2);
+  padding: 14px 26px; border-radius: 99px;
+  font-size: 14px; font-weight: 400; text-decoration: none;
+  border: 1px solid var(--br); transition: all .2s;
+}
+.dl-sub:hover { border-color: rgba(255,255,255,.2); color: var(--tx); }
+
+/* ─── WIDGET MOCKUP ─── */
+.mockup {
+  width: min(360px, 88vw);
+  background: rgba(16,16,16,.95);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(170,255,0,.06),
+    0 40px 100px rgba(0,0,0,.7),
+    0 0 80px rgba(170,255,0,.04);
+}
+.mk-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.mk-dots { display: flex; gap: 5px; }
+.mk-dot { width: 9px; height: 9px; border-radius: 50%; }
+.mk-name { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.2); }
+.mk-body { padding: 16px 16px 18px; }
+.mk-time { font-size: 36px; font-weight: 200; letter-spacing: -2px; line-height: 1; font-variant-numeric: tabular-nums; }
+.mk-date { font-size: 11px; color: rgba(255,255,255,.3); margin-top: 4px; margin-bottom: 16px; font-weight: 300; }
+.mk-sec { font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.22); margin-bottom: 6px; }
+.mk-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 8px; border-radius: 10px; margin-bottom: 3px;
+  cursor: pointer; transition: background .12s;
+}
+.mk-item:hover { background: rgba(255,255,255,.04); }
+.mk-dot2 { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.mk-label { font-size: 12px; font-weight: 400; color: rgba(255,255,255,.75); flex: 1; }
+.mk-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 99px; flex-shrink: 0;
+}
+.mk-add {
+  width: 100%; margin-top: 10px; padding: 9px;
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.1);
+  border-radius: 10px;
+  color: rgba(255,255,255,.28); font-size: 12px;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: all .15s;
+}
+.mk-add:hover { background: rgba(170,255,0,.06); border-color: rgba(170,255,0,.2); color: rgba(170,255,0,.6); }
+.mk-empty { font-size: 11px; color: rgba(255,255,255,.18); padding: 3px 8px; }
+
+/* ─── ABOUT ─── */
+.about {
+  max-width: 600px; margin: 0 auto;
+  padding: 120px 24px;
+  text-align: center;
+}
+.about p {
+  font-size: clamp(20px, 2.8vw, 28px);
+  font-weight: 300; color: var(--tx2); line-height: 1.7;
+  letter-spacing: -.3px;
+}
+.about p b { color: var(--tx); font-weight: 500; }
+
+/* ─── FEATURES ─── */
+.features {
+  border-top: 1px solid var(--br);
+  border-bottom: 1px solid var(--br);
+  padding: 100px 24px;
+}
+.features-inner {
+  max-width: 800px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 0;
+}
+.feat {
+  display: flex; align-items: flex-start; gap: 28px;
+  padding: 40px 0;
+  border-bottom: 1px solid var(--br);
+  transition: opacity .2s;
+}
+.feat:last-child { border-bottom: none; }
+.feat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--s2); border: 1px solid var(--br);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; margin-top: 2px;
+}
+.feat-body { flex: 1; }
+.feat-body h3 {
+  font-size: 18px; font-weight: 500; letter-spacing: -.4px;
+  margin-bottom: 8px; color: var(--tx);
+}
+.feat-body p { font-size: 14px; color: var(--tx2); line-height: 1.75; font-weight: 300; }
+
+/* ─── USAGE ─── */
+.usage {
+  max-width: 640px; margin: 0 auto;
+  padding: 120px 24px;
+  text-align: center;
+}
+.usage h2 {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 300; letter-spacing: -1.5px;
+  margin-bottom: 60px; color: var(--tx);
+}
+.usage h2 b { font-weight: 600; }
+.usage-steps { display: flex; flex-direction: column; gap: 0; text-align: left; }
+.use-step {
+  display: flex; gap: 20px; padding: 32px 0;
+  border-bottom: 1px solid var(--br);
+}
+.use-step:last-child { border-bottom: none; }
+.use-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--neon); flex-shrink: 0; margin-top: 8px;
+  box-shadow: 0 0 8px rgba(170,255,0,.4);
+}
+.use-text h4 { font-size: 16px; font-weight: 500; margin-bottom: 6px; letter-spacing: -.3px; }
+.use-text p { font-size: 13px; color: var(--tx2); line-height: 1.75; font-weight: 300; }
+
+/* ─── CTA ─── */
+.cta {
+  padding: 120px 24px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta::before {
+  content: '';
+  position: absolute; bottom: -10%; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 400px;
+  background: radial-gradient(circle, rgba(170,255,0,.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-name {
+  font-size: clamp(72px, 12vw, 160px);
+  font-weight: 700; letter-spacing: -6px; line-height: .9;
+  color: var(--tx); margin-bottom: 32px;
+  text-shadow: 0 0 120px rgba(170,255,0,.1);
+}
+.cta p { font-size: 15px; color: var(--tx2); font-weight: 300; margin-bottom: 36px; }
+.cta-note { font-size: 11px; color: var(--tx3); margin-top: 16px; letter-spacing: .04em; }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--br);
+  padding: 28px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+footer p { font-size: 12px; color: var(--tx3); }
+footer a { font-size: 12px; color: var(--tx3); text-decoration: none; }
+footer a:hover { color: var(--tx2); }
+
+/* ─── MODAL ─── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  display: none; align-items: center; justify-content: center;
+  z-index: 500; backdrop-filter: blur(8px);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: #141414; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 22px; padding: 28px; width: 300px;
+  box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(170,255,0,.06);
+}
+.modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 20px; }
+.mf { margin-bottom: 14px; }
+.mf label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.3); display: block; margin-bottom: 5px; }
+.mf input, .mf select {
+  width: 100%; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 13px; font-family: inherit;
+  color: #fff; outline: none; transition: border .15s;
+}
+.mf input::placeholder { color: rgba(255,255,255,.22); }
+.mf input:focus, .mf select:focus { border-color: rgba(170,255,0,.35); }
+.mf select option { background: #141414; }
+.mf2 { display: flex; gap: 8px; }
+.mf2 input { flex: 1; }
+.swatches { display: flex; gap: 6px; }
+.sw { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all .12s; }
+.sw.on { border-color: #fff; transform: scale(1.1); }
+.mbtns { display: flex; gap: 8px; margin-top: 20px; }
+.mbtn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; }
+.mbtn-ok { background: var(--neon); color: #111; }
+.mbtn-ok:hover { opacity: .88; }
+.mbtn-no { background: rgba(255,255,255,.08); color: rgba(255,255,255,.5); }
+.mbtn-no:hover { background: rgba(255,255,255,.12); }
+
+@media (max-width: 640px) {
+  nav { padding: 0 20px; }
+  .hero h1 { letter-spacing: -2px; }
+  footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
+  .feat { flex-direction: column; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <span class="n-logo">Nudge<span>.</span></span>
+  <div class="n-right">
+    <a href="#features">기능</a>
+    <a href="#usage">사용법</a>
+    <a href="#download" class="n-dl">다운로드</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-label">Desktop Widget &nbsp;·&nbsp; Free</p>
+  <h1>잊기 전에<br><b>Nudge</b></h1>
+  <p class="hero-sub">
+    창을 닫아도 사라지지 않아요.<br>
+    화면 위에 항상 조용히 떠있는<br>나만의 일정 위젯.
+  </p>
+  <div class="dl-group">
+    <a href="#download" class="dl-main">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 1v9M3 7l4 4 4-4"/><line x1="1" y1="13" x2="13" y2="13"/></svg>
+      무료로 받기
+    </a>
+    <a href="#features" class="dl-sub">어떤 앱인지 보기</a>
+  </div>
+
+  <!-- live widget mockup -->
+  <div class="mockup">
+    <div class="mk-bar">
+      <div class="mk-dots">
+        <div class="mk-dot" style="background:#FF5F57"></div>
+        <div class="mk-dot" style="background:#FEBC2E"></div>
+        <div class="mk-dot" style="background:#28C840"></div>
+      </div>
+      <span class="mk-name">Nudge</span>
+    </div>
+    <div class="mk-body">
+      <div class="mk-time" id="mt">--:--</div>
+      <div class="mk-date" id="md"></div>
+      <div class="mk-sec">오늘</div>
+      <div id="todayW"></div>
+      <div class="mk-sec" style="margin-top:12px">다가오는</div>
+      <div id="upW"></div>
+      <button class="mk-add" onclick="openM()">+ 직접 추가해보세요</button>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about">
+  <p>
+    공부하다 보면 <b>시험이 언제인지</b> 까먹죠.<br>
+    Nudge는 그냥 <b>항상 거기 있어요</b>.<br>
+    딱 필요한 만큼만, 조용히.
+  </p>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="feat">
+      <div class="feat-icon">📌</div>
+      <div class="feat-body">
+        <h3>닫아도 안 사라져요</h3>
+        <p>운영체제 위에 직접 떠있어서 어떤 앱을 쓰든 항상 보여요. 닫기 버튼을 눌러도 트레이로 숨겨질 뿐, 완전히 꺼지지 않아요.</p>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✦</div>
+      <div class="feat-body">
+        <h3>원하는 자리에 두면 기억해요</h3>
+        <p>드래그로 어디든 옮기고, 모서리를 잡아 크기도 자유롭게. 껐다 켜도 그 자리 그대로예요.</p>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⏳</div>
+      <div class="feat-body">
+        <h3>날짜 넣으면 D-day 알아서</h3>
+        <p>날짜만 입력하면 오늘 기준으로 남은 날을 실시간으로 계산해요. 3일 안으로 다가오면 눈에 띄게 바뀌어요.</p>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎛</div>
+      <div class="feat-body">
+        <h3>방해 안 하는 투명도</h3>
+        <p>집중할 때는 배경처럼 녹아들게, 확인할 때만 선명하게. 투명도와 크기를 원하는 대로 조절할 수 있어요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USAGE -->
+<section class="usage" id="usage">
+  <h2>쓰는 방법은<br><b>단순해요</b></h2>
+  <div class="usage-steps">
+    <div class="use-step">
+      <div class="use-dot"></div>
+      <div class="use-text">
+        <h4>받아서 실행</h4>
+        <p>설치 파일 하나 받아서 실행하면 바로 위젯이 뜹니다. 별도 회원가입이나 설정 없어요.</p>
+      </div>
+    </div>
+    <div class="use-step">
+      <div class="use-dot"></div>
+      <div class="use-text">
+        <h4>일정 추가</h4>
+        <p>+ 버튼으로 시험, 수업, 마감일을 등록하세요. 이름이랑 날짜만 넣으면 끝이에요.</p>
+      </div>
+    </div>
+    <div class="use-step">
+      <div class="use-dot"></div>
+      <div class="use-text">
+        <h4>원하는 자리에 두기</h4>
+        <p>드래그로 화면 한쪽에 고정해두면 이후론 신경 안 써도 돼요. 항상 거기 있으니까요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="download">
+  <div class="cta-name">Nudge</div>
+  <p>무료예요. 그냥 받으세요.</p>
+  <div class="dl-group">
+    <a href="https://github.com/YOUR_ID/nudge/releases/latest" class="dl-main">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 1v9M3 7l4 4 4-4"/><line x1="1" y1="13" x2="13" y2="13"/></svg>
+      Windows 다운로드
+    </a>
+    <a href="https://github.com/YOUR_ID/nudge/releases/latest" class="dl-sub">macOS 다운로드</a>
+  </div>
+  <p class="cta-note">GitHub Releases에서 배포됩니다</p>
+</section>
+
+<footer>
+  <p>© 2026 Nudge</p>
+  <a href="mailto:your@email.com">문의</a>
+</footer>
+
+<!-- modal -->
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h3>일정 추가</h3>
+    <div class="mf"><label>이름</label><input id="en" type="text" placeholder="예) 알고리즘 기말고사" maxlength="24"></div>
+    <div class="mf"><label>날짜 / 시간</label><div class="mf2"><input id="ed" type="date"><input id="et" type="time"></div></div>
+    <div class="mf"><label>종류</label>
+      <select id="ek"><option value="exam">📝 시험</option><option value="class">📚 수업</option><option value="deadline">⏰ 마감</option><option value="event">🎉 이벤트</option><option value="etc">📌 기타</option></select>
+    </div>
+    <div class="mf"><label>색상</label>
+      <div class="swatches" id="swp">
+        <div class="sw on" data-c="neon" style="background:#AAFF00" onclick="pc(this,'neon')"></div>
+        <div class="sw" data-c="blue" style="background:#6BB8FF" onclick="pc(this,'blue')"></div>
+        <div class="sw" data-c="red" style="background:#FF6B6B" onclick="pc(this,'red')"></div>
+        <div class="sw" data-c="amber" style="background:#FFB347" onclick="pc(this,'amber')"></div>
+        <div class="sw" data-c="pink" style="background:#FF9DE2" onclick="pc(this,'pink')"></div>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn mbtn-no" onclick="closeM()">취소</button>
+      <button class="mbtn mbtn-ok" onclick="addE()">추가</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS={neon:'#AAFF00',blue:'#6BB8FF',red:'#FF6B6B',amber:'#FFB347',pink:'#FF9DE2'}
+const ICONS={exam:'📝',class:'📚',deadline:'⏰',event:'🎉',etc:'📌'}
+const DAYS=['일','월','화','수','목','금','토']
+let evts=[], sc='neon'
+
+function toS(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dU(s){const n=new Date();n.setHours(0,0,0,0);const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-n)/86400000)}
+
+;(()=>{
+  const n=new Date()
+  function a(d){const x=new Date(n);x.setDate(x.getDate()+d);return toS(x)}
+  evts=[
+    {id:'1',name:'알고리즘 기말',date:a(14),time:'',type:'exam',color:'red'},
+    {id:'2',name:'컴퓨터개론',date:toS(n),time:'13:00',type:'class',color:'blue'},
+    {id:'3',name:'과제 마감',date:a(3),time:'23:59',type:'deadline',color:'amber'},
+  ]
+})()
+
+function tick(){
+  const n=new Date()
+  document.getElementById('mt').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')
+  document.getElementById('md').textContent=`${n.getMonth()+1}월 ${n.getDate()}일 (${DAYS[n.getDay()]})`
+}
+setInterval(tick,1000);tick()
+
+function render(){
+  const today=toS(new Date())
+  const te=evts.filter(e=>e.date===today)
+  const ue=evts.filter(e=>dU(e.date)>0).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,4)
+  const isNeon=c=>c==='neon'
+
+  document.getElementById('todayW').innerHTML=te.length
+    ?te.map(e=>`<div class="mk-item"><div class="mk-dot2" style="background:${COLS[e.color]}"></div><div class="mk-label">${ICONS[e.type]} ${e.name}</div><div class="mk-badge" style="background:${COLS[e.color]}22;color:${COLS[e.color]}">${e.time||'오늘'}</div></div>`).join('')
+    :'<div class="mk-empty">없음</div>'
+
+  document.getElementById('upW').innerHTML=ue.length
+    ?ue.map(e=>{const d=dU(e.date);const urgent=d<=3;return`<div class="mk-item"><div class="mk-dot2" style="background:${COLS[e.color]};${urgent?'box-shadow:0 0 6px '+COLS[e.color]+'88':''}"></div><div class="mk-label">${ICONS[e.type]} ${e.name}</div><div class="mk-badge" style="background:${COLS[e.color]}22;color:${COLS[e.color]}">${d===1?'내일':'D-'+d}</div></div>`}).join('')
+    :'<div class="mk-empty">없음</div>'
+}
+render()
+
+function openM(){
+  document.getElementById('en').value=''
+  document.getElementById('ed').value=toS(new Date())
+  document.getElementById('et').value=''
+  document.getElementById('ov').classList.add('open')
+  setTimeout(()=>document.getElementById('en').focus(),60)
+}
+function closeM(){document.getElementById('ov').classList.remove('open')}
+document.getElementById('ov').addEventListener('click',e=>{if(e.target===document.getElementById('ov'))closeM()})
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM();if(e.key==='Enter'&&document.getElementById('ov').classList.contains('open'))addE()})
+
+function pc(el,c){document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');sc=c}
+function addE(){
+  const n=document.getElementById('en').value.trim(),d=document.getElementById('ed').value
+  if(!n||!d)return
+  evts.push({id:Date.now()+'',name:n,date:d,time:document.getElementById('et').value,type:document.getElementById('ek').value,color:sc})
+  closeM();render()
+}
+
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('stuck',scrollY>40))
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Nudge</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-user-select:none; user-select:none; }
+:root {
+  --neon: #AAFF00;
+  --bg: rgba(10,10,10,0.90);
+  --br: rgba(255,255,255,.08);
+  --tx: #F2F2F2;
+  --tx2: rgba(255,255,255,.35);
+  --tx3: rgba(255,255,255,.18);
+}
+html, body { width:100%; height:100%; overflow:hidden; background:transparent; }
+body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-font-smoothing:antialiased; }
+
+.widget {
+  width:100%; height:100%;
+  background: var(--bg);
+  border: 1px solid var(--br);
+  border-radius: 18px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(170,255,0,.05), 0 32px 80px rgba(0,0,0,.7);
+}
+
+/* titlebar */
+.bar {
+  padding: 10px 14px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--br);
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+}
+.dots { display:flex; gap:5px; -webkit-app-region:no-drag; }
+.dot { width:9px; height:9px; border-radius:50%; cursor:pointer; transition:opacity .15s; }
+.dot:hover { opacity:.7; }
+.bar-name { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--tx3); }
+.bar-right { -webkit-app-region:no-drag; }
+.icobtn { width:22px; height:22px; background:none; border:none; cursor:pointer; border-radius:6px; color:var(--tx3); font-size:12px; display:flex; align-items:center; justify-content:center; transition:all .12s; }
+.icobtn:hover { background:rgba(255,255,255,.07); color:var(--tx); }
+
+/* body */
+.body { flex:1; overflow-y:auto; overflow-x:hidden; padding:14px 14px 12px; scrollbar-width:none; }
+.body::-webkit-scrollbar { display:none; }
+
+/* clock */
+.clk { margin-bottom:14px; }
+.clk-t { font-size:32px; font-weight:200; letter-spacing:-1.5px; line-height:1; font-variant-numeric:tabular-nums; }
+.clk-d { font-size:10px; color:var(--tx3); margin-top:4px; font-weight:300; }
+
+/* section label */
+.sec { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--tx3); margin:10px 0 5px; }
+
+/* event row */
+.evt {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 8px; border-radius:10px; margin-bottom:2px;
+  cursor:default; transition:background .1s; position:relative;
+}
+.evt:hover { background:rgba(255,255,255,.04); }
+.evt:hover .edel { opacity:1; }
+.edot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.ebody { flex:1; min-width:0; }
+.ename { font-size:12px; font-weight:400; color:var(--tx); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.esub { font-size:10px; color:var(--tx3); margin-top:1px; }
+.ebadge { font-size:9px; font-weight:600; padding:2px 7px; border-radius:99px; flex-shrink:0; }
+.edel {
+  opacity:0; position:absolute; right:4px;
+  width:16px; height:16px; border:none;
+  background:rgba(255,80,80,.15); border-radius:5px;
+  cursor:pointer; color:#FF6B6B; font-size:9px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .1s;
+}
+.edel:hover { background:rgba(255,80,80,.28); }
+
+.empty { font-size:11px; color:var(--tx3); padding:3px 8px; }
+
+/* add button */
+.addbtn {
+  width:100%; margin-top:8px; padding:8px;
+  background:rgba(255,255,255,.04);
+  border:1px dashed rgba(255,255,255,.1);
+  border-radius:10px; color:var(--tx3);
+  font-size:11px; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+  transition:all .15s;
+}
+.addbtn:hover { background:rgba(170,255,0,.06); border-color:rgba(170,255,0,.2); color:rgba(170,255,0,.6); }
+
+/* settings */
+.settings {
+  display:none; border-top:1px solid var(--br);
+  padding:10px 14px; gap:10px; flex-direction:column;
+  flex-shrink:0;
+}
+.srow { display:flex; align-items:center; justify-content:space-between; }
+.srow label { font-size:10px; color:var(--tx3); }
+.srow input[type=range] { width:88px; accent-color:var(--neon); cursor:pointer; }
+
+/* modal */
+.ov {
+  position:fixed; inset:0; background:rgba(0,0,0,.65);
+  display:none; align-items:center; justify-content:center;
+  z-index:100; backdrop-filter:blur(6px);
+}
+.ov.open { display:flex; }
+.modal {
+  background:#111; border:1px solid rgba(255,255,255,.1);
+  border-radius:18px; padding:22px; width:252px;
+  box-shadow:0 0 0 1px rgba(170,255,0,.06), 0 32px 60px rgba(0,0,0,.6);
+}
+.modal h3 { font-size:14px; font-weight:600; margin-bottom:16px; }
+.mf { margin-bottom:11px; }
+.mf label { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.3); display:block; margin-bottom:4px; }
+.mf input, .mf select {
+  width:100%; background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.09); border-radius:8px;
+  padding:8px 10px; font-size:12px; font-family:inherit;
+  color:#fff; outline:none; transition:border .15s;
+}
+.mf input::placeholder { color:rgba(255,255,255,.22); }
+.mf input:focus, .mf select:focus { border-color:rgba(170,255,0,.35); }
+.mf select option { background:#111; }
+.mf2 { display:flex; gap:6px; }
+.mf2 input { flex:1; }
+.swatches { display:flex; gap:5px; }
+.sw { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all .12s; }
+.sw.on { border-color:#fff; transform:scale(1.1); }
+.mbtns { display:flex; gap:7px; margin-top:16px; }
+.mbtn { flex:1; padding:9px; border:none; border-radius:9px; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:opacity .15s; }
+.mbtn-ok { background:var(--neon); color:#111; }
+.mbtn-ok:hover { opacity:.85; }
+.mbtn-no { background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="bar">
+    <div class="dots">
+      <div class="dot" style="background:#FF5F57" onclick="window.nudge.close()" title="닫기"></div>
+      <div class="dot" style="background:#FEBC2E" onclick="window.nudge.minimize()" title="최소화"></div>
+      <div class="dot" style="background:#28C840"></div>
+    </div>
+    <span class="bar-name">Nudge</span>
+    <div class="bar-right">
+      <button class="icobtn" onclick="toggleSet()" title="설정">⚙</button>
+    </div>
+  </div>
+
+  <div class="body" id="body">
+    <div class="clk">
+      <div class="clk-t" id="ct">--:--</div>
+      <div class="clk-d" id="cd"></div>
+    </div>
+    <div class="sec">오늘</div>
+    <div id="todayL"></div>
+    <div class="sec" style="margin-top:10px">다가오는</div>
+    <div id="upL"></div>
+    <button class="addbtn" onclick="openM()">+ 일정 추가</button>
+  </div>
+
+  <div class="settings" id="st">
+    <div class="srow"><label>투명도</label><input type="range" min="50" max="97" id="rOp" oninput="applyS()"></div>
+    <div class="srow"><label>글자 크기</label><input type="range" min="10" max="15" id="rFs" oninput="applyS()"></div>
+  </div>
+</div>
+
+<div class="ov" id="ov">
+  <div class="modal">
+    <h3>일정 추가</h3>
+    <div class="mf"><label>이름</label><input id="en" type="text" placeholder="예) 알고리즘 기말고사" maxlength="24"></div>
+    <div class="mf"><label>날짜 / 시간</label><div class="mf2"><input id="ed" type="date"><input id="et" type="time"></div></div>
+    <div class="mf"><label>종류</label>
+      <select id="ek">
+        <option value="exam">📝 시험</option>
+        <option value="class">📚 수업</option>
+        <option value="deadline">⏰ 마감</option>
+        <option value="event">🎉 이벤트</option>
+        <option value="etc">📌 기타</option>
+      </select>
+    </div>
+    <div class="mf"><label>색상</label>
+      <div class="swatches" id="swp">
+        <div class="sw on" data-c="neon" style="background:#AAFF00" onclick="pc(this,'neon')"></div>
+        <div class="sw" data-c="blue" style="background:#6BB8FF" onclick="pc(this,'blue')"></div>
+        <div class="sw" data-c="red" style="background:#FF6B6B" onclick="pc(this,'red')"></div>
+        <div class="sw" data-c="amber" style="background:#FFB347" onclick="pc(this,'amber')"></div>
+        <div class="sw" data-c="pink" style="background:#FF9DE2" onclick="pc(this,'pink')"></div>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn mbtn-no" onclick="closeM()">취소</button>
+      <button class="mbtn mbtn-ok" onclick="addE()">추가</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS={neon:'#AAFF00',blue:'#6BB8FF',red:'#FF6B6B',amber:'#FFB347',pink:'#FF9DE2'}
+const ICONS={exam:'📝',class:'📚',deadline:'⏰',event:'🎉',etc:'📌'}
+const DAYS=['일','월','화','수','목','금','토']
+let evts=[], sc='neon', cfg={opacity:90,fontSize:12}
+
+function toS(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dU(s){const n=new Date();n.setHours(0,0,0,0);const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-n)/86400000)}
+
+async function init(){
+  evts = await window.nudge.getEvents()
+  cfg  = await window.nudge.getSettings()
+  document.getElementById('rOp').value = cfg.opacity
+  document.getElementById('rFs').value = cfg.fontSize
+  applyS(); render()
+}
+
+function tick(){
+  const n=new Date()
+  document.getElementById('ct').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')
+  document.getElementById('cd').textContent = `${n.getMonth()+1}월 ${n.getDate()}일 (${DAYS[n.getDay()]})`
+}
+setInterval(tick,1000); tick()
+
+function render(){
+  const today=toS(new Date())
+  const te=evts.filter(e=>e.date===today)
+  const ue=evts.filter(e=>dU(e.date)>0).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,5)
+
+  document.getElementById('todayL').innerHTML = te.length
+    ? te.map(e=>`<div class="evt"><div class="edot" style="background:${COLS[e.color]}"></div><div class="ebody"><div class="ename">${ICONS[e.type]} ${e.name}</div></div><div class="ebadge" style="background:${COLS[e.color]}22;color:${COLS[e.color]}">${e.time||'오늘'}</div><button class="edel" onclick="delE('${e.id}')">✕</button></div>`).join('')
+    : '<div class="empty">없음</div>'
+
+  document.getElementById('upL').innerHTML = ue.length
+    ? ue.map(e=>{const d=dU(e.date);const ug=d<=3;return`<div class="evt"><div class="edot" style="background:${COLS[e.color]};${ug?'box-shadow:0 0 5px '+COLS[e.color]+'88':''}"></div><div class="ebody"><div class="ename">${ICONS[e.type]} ${e.name}</div><div class="esub">${e.date}${e.time?' '+e.time:''}</div></div><div class="ebadge" style="background:${COLS[e.color]}22;color:${COLS[e.color]}">${d===1?'내일':'D-'+d}</div><button class="edel" onclick="delE('${e.id}')">✕</button></div>`}).join('')
+    : '<div class="empty">없음</div>'
+}
+
+function openM(){
+  document.getElementById('en').value=''
+  document.getElementById('ed').value=toS(new Date())
+  document.getElementById('et').value=''
+  document.getElementById('ov').classList.add('open')
+  setTimeout(()=>document.getElementById('en').focus(),50)
+}
+function closeM(){document.getElementById('ov').classList.remove('open')}
+document.getElementById('ov').addEventListener('click',e=>{if(e.target===document.getElementById('ov'))closeM()})
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM();if(e.key==='Enter'&&document.getElementById('ov').classList.contains('open'))addE()})
+
+function pc(el,c){document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');sc=c}
+
+async function addE(){
+  const n=document.getElementById('en').value.trim(),d=document.getElementById('ed').value
+  if(!n||!d)return
+  evts.push({id:Date.now()+'',name:n,date:d,time:document.getElementById('et').value,type:document.getElementById('ek').value,color:sc})
+  await window.nudge.saveEvents(evts)
+  closeM(); render()
+}
+async function delE(id){
+  evts=evts.filter(e=>e.id!==id)
+  await window.nudge.saveEvents(evts); render()
+}
+
+function toggleSet(){
+  const s=document.getElementById('st')
+  s.style.display=s.style.display==='flex'?'none':'flex'
+}
+async function applyS(){
+  const op=+document.getElementById('rOp').value
+  const fs=+document.getElementById('rFs').value
+  document.querySelector('.widget').style.background=`rgba(10,10,10,${op/100})`
+  document.getElementById('body').style.fontSize=fs+'px'
+  cfg={opacity:op,fontSize:fs}
+  await window.nudge.saveSettings(cfg)
+}
+
+init()
+</script>
+</body>
+</html>
