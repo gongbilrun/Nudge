@@ -15,9 +15,11 @@
     "mac": { "target": "dmg", "icon": "assets/icon.icns", "category": "public.app-category.productivity" },
     "nsis": { "oneClick": true, "perMachine": false }
   },
+  "dependencies": {
+    "electron-store": "^9.0.0"
+  },
   "devDependencies": {
     "electron": "^30.0.0",
-    "electron-builder": "^24.0.0",
-    "electron-store": "^9.0.0"
+    "electron-builder": "^24.0.0"
   }
 }
