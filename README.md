@@ -19,7 +19,6 @@ nudge/
 1. GitHub public 레포 생성
 2. 이 폴더 전체 push
 3. Vercel → Import → root directory `/` → Deploy
-4. `index.html` 다운로드 링크의 `YOUR_ID` 를 본인 GitHub ID로 교체
 
 ## Electron 앱 실행
 
