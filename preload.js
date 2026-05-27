@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld('nudge', {
   saveSettings: (v)   => ipcRenderer.invoke('save-settings', v),
   minimize:     ()    => ipcRenderer.send('minimize'),
   close:        ()    => ipcRenderer.send('close'),
+  showReminder: ()    => ipcRenderer.send('show-reminder'),
 })
