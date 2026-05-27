@@ -35,12 +35,22 @@ function save() {
   if (win) store.set('bounds', win.getBounds())
 }
 
-ipcMain.handle('get-events',   ()      => store.get('events', []))
-ipcMain.handle('save-events',  (_, v)  => { store.set('events', v); return true })
-ipcMain.handle('get-settings', ()      => store.get('settings', { opacity: 90, fontSize: 12 }))
-ipcMain.handle('save-settings',(_, v)  => { store.set('settings', v); return true })
+ipcMain.handle('get-events',    ()     => store.get('events', []))
+ipcMain.handle('save-events',   (_, v) => { store.set('events', v); return true })
+ipcMain.handle('get-settings',  ()     => store.get('settings', { opacity: 90, fontSize: 12, theme: 'dark' }))
+ipcMain.handle('save-settings', (_, v) => { store.set('settings', v); return true })
+
 ipcMain.on('minimize', () => win.minimize())
 ipcMain.on('close',    () => win.hide())
+
+// 리마인더: 최소화돼 있어도 창을 위로 뿅
+ipcMain.on('show-reminder', () => {
+  if (!win) return
+  if (win.isMinimized()) win.restore()
+  win.show()
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.focus()
+})
 
 app.whenReady().then(createWindow)
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
