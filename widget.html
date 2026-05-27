@@ -7,7 +7,6 @@
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-user-select:none; user-select:none; }
 
-/* ── DARK THEME (기본) ── */
 :root {
   --neon: #AAFF00;
   --wbg: rgba(14,14,14,0.92);
@@ -25,8 +24,6 @@
   --selbg: rgba(255,255,255,.1);
   --selclr: rgba(255,255,255,.6);
 }
-
-/* ── LIGHT THEME ── */
 body.light {
   --wbg: rgba(250,250,248,0.95);
   --wbr: rgba(0,0,0,.1);
@@ -47,25 +44,65 @@ body.light {
 html, body { width:100%; height:100%; overflow:hidden; background:transparent; }
 body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-font-smoothing:antialiased; }
 
-.widget {
-  width:100%; height:100%;
-  background: var(--wbg);
-  border: 1px solid var(--wbr);
-  border-radius: 18px;
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(170,255,0,.05), 0 32px 80px rgba(0,0,0,.5);
-  transition: background .2s, border-color .2s;
+/* ── 리마인더 플래시 오버레이 ── */
+#flash-overlay {
+  position:fixed; inset:0; z-index:999;
+  border-radius:18px;
+  pointer-events:none;
+  opacity:0;
+}
+#flash-overlay.flashing {
+  animation: flashPulse 2.4s ease-in-out;
+}
+@keyframes flashPulse {
+  0%   { opacity:0; }
+  10%  { opacity:.55; }
+  25%  { opacity:.15; }
+  40%  { opacity:.5; }
+  55%  { opacity:.1; }
+  70%  { opacity:.45; }
+  85%  { opacity:.08; }
+  100% { opacity:0; }
 }
 
-/* titlebar */
+/* ── 리마인더 토스트 ── */
+#reminder-toast {
+  position:fixed; bottom:10px; left:10px; right:10px;
+  background:var(--mbg);
+  border:1px solid var(--wbr);
+  border-radius:12px;
+  padding:10px 14px;
+  z-index:1000;
+  display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  transition:background .2s;
+}
+#reminder-toast.show { display:flex; align-items:center; gap:10px; animation:slideUp .3s ease; }
+@keyframes slideUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+.rt-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.rt-body { flex:1; }
+.rt-title { font-size:12px; font-weight:600; color:var(--tx); }
+.rt-sub { font-size:10px; color:var(--tx2); margin-top:2px; }
+.rt-close { font-size:14px; color:var(--tx3); cursor:pointer; padding:2px 4px; line-height:1; }
+.rt-close:hover { color:var(--tx); }
+
+.widget {
+  width:100%; height:100%;
+  background:var(--wbg);
+  border:1px solid var(--wbr);
+  border-radius:18px;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(170,255,0,.05), 0 32px 80px rgba(0,0,0,.5);
+  transition:background .2s, border-color .2s;
+}
+
 .bar {
-  padding: 10px 14px 8px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--wbr);
-  -webkit-app-region: drag;
-  flex-shrink: 0;
-  transition: border-color .2s;
+  padding:10px 14px 8px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--wbr);
+  -webkit-app-region:drag;
+  flex-shrink:0;
 }
 .dots { display:flex; gap:5px; -webkit-app-region:no-drag; }
 .dot { width:9px; height:9px; border-radius:50%; cursor:pointer; transition:opacity .15s; }
@@ -75,19 +112,15 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
 .icobtn { width:22px; height:22px; background:none; border:none; cursor:pointer; border-radius:6px; color:var(--tx3); font-size:13px; display:flex; align-items:center; justify-content:center; transition:all .12s; }
 .icobtn:hover { background:var(--hover); color:var(--tx); }
 
-/* body */
 .body { flex:1; overflow-y:auto; overflow-x:hidden; padding:14px 14px 12px; scrollbar-width:none; }
 .body::-webkit-scrollbar { display:none; }
 
-/* clock */
 .clk { margin-bottom:14px; }
 .clk-t { font-size:32px; font-weight:200; letter-spacing:-1.5px; line-height:1; font-variant-numeric:tabular-nums; color:var(--tx); }
 .clk-d { font-size:11px; color:var(--tx2); margin-top:4px; font-weight:400; }
 
-/* section label */
 .sec { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--tx3); margin:10px 0 5px; }
 
-/* event row */
 .evt {
   display:flex; align-items:center; gap:8px;
   padding:6px 8px; border-radius:10px; margin-bottom:2px;
@@ -111,11 +144,9 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
 .edel:hover { background:rgba(255,80,80,.28); }
 .empty { font-size:11px; color:var(--tx2); padding:3px 8px; }
 
-/* add button */
 .addbtn {
   width:100%; margin-top:8px; padding:8px;
-  background:var(--ibg);
-  border:1px dashed var(--ibr);
+  background:var(--ibg); border:1px dashed var(--ibr);
   border-radius:10px; color:var(--tx3);
   font-size:11px; cursor:pointer; font-family:inherit;
   display:flex; align-items:center; justify-content:center; gap:4px;
@@ -123,20 +154,15 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
 }
 .addbtn:hover { background:rgba(170,255,0,.08); border-color:rgba(170,255,0,.3); color:rgba(150,220,0,.9); }
 
-/* settings */
 .settings {
   display:none; border-top:1px solid var(--wbr);
-  padding:10px 14px; gap:8px; flex-direction:column;
-  flex-shrink:0;
+  padding:10px 14px; gap:8px; flex-direction:column; flex-shrink:0;
 }
 .srow { display:flex; align-items:center; justify-content:space-between; }
 .srow label { font-size:11px; font-weight:500; color:var(--tx2); }
 .srow input[type=range] { width:88px; accent-color:var(--neon); cursor:pointer; }
 
-/* theme toggle */
-.theme-toggle {
-  display:flex; align-items:center; justify-content:space-between;
-}
+.theme-toggle { display:flex; align-items:center; justify-content:space-between; }
 .theme-toggle label { font-size:11px; font-weight:500; color:var(--tx2); }
 .toggle-btns { display:flex; gap:4px; }
 .tbtn {
@@ -146,7 +172,6 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
 }
 .tbtn.on { background:var(--neon); color:#111; border-color:var(--neon); }
 
-/* modal */
 .ov {
   position:fixed; inset:0; background:rgba(0,0,0,.55);
   display:none; align-items:center; justify-content:center;
@@ -157,15 +182,13 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
   background:var(--mbg); border:1px solid var(--mbr);
   border-radius:18px; padding:22px; width:252px;
   box-shadow:0 0 0 1px rgba(170,255,0,.06), 0 32px 60px rgba(0,0,0,.4);
-  transition: background .2s;
 }
 .modal h3 { font-size:14px; font-weight:600; margin-bottom:16px; color:var(--tx); }
 .mf { margin-bottom:11px; }
 .mf label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--tx3); display:block; margin-bottom:4px; }
 .mf input, .mf select {
-  width:100%; background:var(--ibg);
-  border:1px solid var(--ibr); border-radius:8px;
-  padding:8px 10px; font-size:12px; font-family:inherit;
+  width:100%; background:var(--ibg); border:1px solid var(--ibr);
+  border-radius:8px; padding:8px 10px; font-size:12px; font-family:inherit;
   color:var(--iclr); outline:none; transition:border .15s;
 }
 .mf input::placeholder { color:var(--iph); }
@@ -174,16 +197,30 @@ body { font-family:'Outfit','Noto Sans KR',sans-serif; color:var(--tx); -webkit-
 .mf2 { display:flex; gap:6px; }
 .mf2 input { flex:1; }
 .swatches { display:flex; gap:5px; }
-.sw { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all .12px; }
+.sw { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all .12s; }
 .sw.on { border-color:var(--tx); transform:scale(1.1); }
 .mbtns { display:flex; gap:7px; margin-top:16px; }
-.mbtn { flex:1; padding:9px; border:none; border-radius:9px; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:opacity .15s; }
+.mbtn { flex:1; padding:9px; border:none; border-radius:9px; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; }
 .mbtn-ok { background:var(--neon); color:#111; }
 .mbtn-ok:hover { opacity:.85; }
 .mbtn-no { background:var(--selbg); color:var(--selclr); }
 </style>
 </head>
 <body>
+
+<!-- 플래시 오버레이 -->
+<div id="flash-overlay"></div>
+
+<!-- 리마인더 토스트 -->
+<div id="reminder-toast">
+  <div class="rt-dot" id="rt-dot"></div>
+  <div class="rt-body">
+    <div class="rt-title" id="rt-title"></div>
+    <div class="rt-sub" id="rt-sub"></div>
+  </div>
+  <span class="rt-close" onclick="closeToast()">✕</span>
+</div>
+
 <div class="widget">
   <div class="bar">
     <div class="dots">
@@ -258,6 +295,9 @@ const ICONS={exam:'📝',class:'📚',deadline:'⏰',event:'🎉',etc:'📌'}
 const DAYS=['일','월','화','수','목','금','토']
 let evts=[], sc='neon', cfg={opacity:90,fontSize:12,theme:'dark'}
 
+// 이미 알림을 보낸 이벤트 추적 (앱 실행 중 중복 방지)
+const notified = new Set()
+
 function toS(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function dU(s){const n=new Date();n.setHours(0,0,0,0);const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-n)/86400000)}
 
@@ -269,8 +309,10 @@ async function init(){
   document.getElementById('rFs').value = cfg.fontSize
   applyTheme(cfg.theme)
   applyS(); render()
+  startReminder()
 }
 
+/* ── 시계 ── */
 function tick(){
   const n=new Date()
   document.getElementById('ct').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')
@@ -278,6 +320,73 @@ function tick(){
 }
 setInterval(tick,1000); tick()
 
+/* ── 리마인더 체크 (30초마다) ── */
+function startReminder(){
+  checkReminder()
+  setInterval(checkReminder, 30000)
+}
+
+function checkReminder(){
+  const now = new Date()
+  const todayStr = toS(now)
+  const todayEvts = evts.filter(e => e.date === todayStr && e.time)
+
+  todayEvts.forEach(e => {
+    const [hh, mm] = e.time.split(':').map(Number)
+    const evtDate = new Date(now)
+    evtDate.setHours(hh, mm, 0, 0)
+    const diffMin = (evtDate - now) / 60000
+
+    // 10분 전
+    if(diffMin >= 9.5 && diffMin < 10.5){
+      const key = `${e.id}-10`
+      if(!notified.has(key)){
+        notified.add(key)
+        triggerReminder(e, 10)
+      }
+    }
+    // 5분 전
+    if(diffMin >= 4.5 && diffMin < 5.5){
+      const key = `${e.id}-5`
+      if(!notified.has(key)){
+        notified.add(key)
+        triggerReminder(e, 5)
+      }
+    }
+  })
+}
+
+function triggerReminder(evt, minBefore){
+  const col = COLS[evt.color] || COLS.neon
+
+  // 1. 창 뿅 올리기
+  window.nudge.showReminder()
+
+  // 2. 플래시 오버레이
+  const overlay = document.getElementById('flash-overlay')
+  overlay.style.background = col
+  overlay.classList.remove('flashing')
+  void overlay.offsetWidth // reflow
+  overlay.classList.add('flashing')
+  overlay.addEventListener('animationend', () => overlay.classList.remove('flashing'), {once:true})
+
+  // 3. 토스트 표시
+  document.getElementById('rt-dot').style.background = col
+  document.getElementById('rt-title').textContent = `${ICONS[evt.type]} ${evt.name}`
+  document.getElementById('rt-sub').textContent = `${minBefore}분 후 시작 · ${evt.time}`
+  const toast = document.getElementById('reminder-toast')
+  toast.style.borderColor = col + '66'
+  toast.classList.add('show')
+
+  // 7초 후 자동 닫기
+  setTimeout(closeToast, 7000)
+}
+
+function closeToast(){
+  document.getElementById('reminder-toast').classList.remove('show')
+}
+
+/* ── 렌더 ── */
 function render(){
   const today=toS(new Date())
   const te=evts.filter(e=>e.date===today)
@@ -293,24 +402,20 @@ function render(){
     : '<div class="empty">없음</div>'
 }
 
+/* ── 테마 ── */
 function setTheme(t){
-  cfg.theme=t; applyTheme(t)
-  window.nudge.saveSettings(cfg)
-  render()
+  cfg.theme=t; applyTheme(t); window.nudge.saveSettings(cfg); render()
 }
 function applyTheme(t){
   document.body.classList.toggle('light', t==='light')
   document.getElementById('tbDark').classList.toggle('on', t==='dark')
   document.getElementById('tbLight').classList.toggle('on', t==='light')
-  // 라이트 모드일 때 배경 조정
   const op = cfg.opacity || 90
-  if(t==='light'){
-    document.querySelector('.widget').style.background=`rgba(250,250,248,${op/100})`
-  } else {
-    document.querySelector('.widget').style.background=`rgba(14,14,14,${op/100})`
-  }
+  document.querySelector('.widget').style.background =
+    t==='light' ? `rgba(250,250,248,${op/100})` : `rgba(14,14,14,${op/100})`
 }
 
+/* ── 모달 ── */
 function openM(){
   document.getElementById('en').value=''
   document.getElementById('ed').value=toS(new Date())
@@ -344,11 +449,8 @@ async function applyS(){
   const op=+document.getElementById('rOp').value
   const fs=+document.getElementById('rFs').value
   const t=cfg.theme||'dark'
-  if(t==='light'){
-    document.querySelector('.widget').style.background=`rgba(250,250,248,${op/100})`
-  } else {
-    document.querySelector('.widget').style.background=`rgba(14,14,14,${op/100})`
-  }
+  document.querySelector('.widget').style.background =
+    t==='light' ? `rgba(250,250,248,${op/100})` : `rgba(14,14,14,${op/100})`
   document.getElementById('body').style.fontSize=fs+'px'
   cfg={...cfg,opacity:op,fontSize:fs}
   await window.nudge.saveSettings(cfg)
