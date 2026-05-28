@@ -353,6 +353,14 @@ function checkReminder(){
         triggerReminder(e, 5)
       }
     }
+    // 정각 (시작 시간)
+    if(diffMin >= -0.5 && diffMin < 0.5){
+      const key = `${e.id}-0`
+      if(!notified.has(key)){
+        notified.add(key)
+        triggerReminder(e, 0)
+      }
+    }
   })
 }
 
@@ -373,7 +381,9 @@ function triggerReminder(evt, minBefore){
   // 3. 토스트 표시
   document.getElementById('rt-dot').style.background = col
   document.getElementById('rt-title').textContent = `${ICONS[evt.type]} ${evt.name}`
-  document.getElementById('rt-sub').textContent = `${minBefore}분 후 시작 · ${evt.time}`
+  document.getElementById('rt-sub').textContent = minBefore === 0
+    ? `지금 시작 · ${evt.time}`
+    : `${minBefore}분 후 시작 · ${evt.time}`
   const toast = document.getElementById('reminder-toast')
   toast.style.borderColor = col + '66'
   toast.classList.add('show')
